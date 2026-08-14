@@ -84,7 +84,7 @@ func TestHandleConnections(t *testing.T) {
 	}
 
 	var conn models.Connection
-	json.Unmarshal(rr.Body.Bytes(), &conn)
+	_ = json.Unmarshal(rr.Body.Bytes(), &conn)
 
 	if conn.Name != "test-conn" {
 		t.Errorf("Expected name 'test-conn', got '%s'", conn.Name)

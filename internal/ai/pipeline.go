@@ -140,7 +140,7 @@ func (p *Pipeline) Execute(
 		// Step 7: Redact secrets from all design fields
 		designJSON, _ := json.Marshal(design)
 		redactedJSON := RedactSecrets(string(designJSON), secrets)
-		json.Unmarshal([]byte(redactedJSON), design)
+		_ = json.Unmarshal([]byte(redactedJSON), design)
 
 		response.Design = design
 		response.ValidationErrors = validationErrors

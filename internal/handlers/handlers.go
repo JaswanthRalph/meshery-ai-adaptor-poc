@@ -326,11 +326,11 @@ func (h *Handler) handleHealthCheck(w http.ResponseWriter, r *http.Request, conn
 	// Update connection status based on health check
 	switch status.Status {
 	case "connected":
-		h.store.UpdateConnectionStatus(connID, models.StatusConnected)
+		_ = h.store.UpdateConnectionStatus(connID, models.StatusConnected)
 	case "auth_failed":
-		h.store.UpdateConnectionStatus(connID, models.StatusError)
+		_ = h.store.UpdateConnectionStatus(connID, models.StatusError)
 	case "unreachable":
-		h.store.UpdateConnectionStatus(connID, models.StatusDisconnected)
+		_ = h.store.UpdateConnectionStatus(connID, models.StatusDisconnected)
 	}
 
 	// SECURITY: Redact any secrets from health check messages
@@ -446,7 +446,7 @@ func (h *Handler) handleGenerate(w http.ResponseWriter, r *http.Request) {
 func writeJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(data)
+	_ = json.NewEncoder(w).Encode(data)
 }
 
 func writeError(w http.ResponseWriter, status int, format string, args ...interface{}) {

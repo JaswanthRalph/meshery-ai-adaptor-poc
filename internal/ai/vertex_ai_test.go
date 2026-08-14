@@ -94,7 +94,7 @@ func TestVertexAIHealthCheck(t *testing.T) {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"totalTokens": 5}`))
+		_, _ = w.Write([]byte(`{"totalTokens": 5}`))
 	}))
 	defer server.Close()
 
@@ -127,7 +127,7 @@ func TestVertexAIHealthCheck(t *testing.T) {
 func TestVertexAIGenerateParsing(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
 			"candidates": [
 				{
 					"content": {

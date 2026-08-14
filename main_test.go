@@ -108,7 +108,7 @@ func TestServerEndToEnd(t *testing.T) {
 	}
 
 	var cred models.CredentialResponse
-	json.NewDecoder(resp.Body).Decode(&cred)
+	_ = json.NewDecoder(resp.Body).Decode(&cred)
 	resp.Body.Close()
 
 	if cred.ID == "" {
@@ -139,7 +139,7 @@ func TestServerEndToEnd(t *testing.T) {
 	}
 
 	var conn models.Connection
-	json.NewDecoder(resp.Body).Decode(&conn)
+	_ = json.NewDecoder(resp.Body).Decode(&conn)
 	resp.Body.Close()
 
 	// 3. Test Health Check
@@ -153,7 +153,7 @@ func TestServerEndToEnd(t *testing.T) {
 	}
 
 	var health models.HealthStatus
-	json.NewDecoder(resp.Body).Decode(&health)
+	_ = json.NewDecoder(resp.Body).Decode(&health)
 	resp.Body.Close()
 	if health.Status != "connected" {
 		t.Fatalf("Expected connected status, got %s", health.Status)

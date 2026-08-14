@@ -89,7 +89,7 @@ func (p *OllamaProvider) HealthCheck(ctx context.Context) (*models.HealthStatus,
 			} `json:"models"`
 		}
 		body, _ := io.ReadAll(resp.Body)
-		json.Unmarshal(body, &result)
+		_ = json.Unmarshal(body, &result)
 
 		modelFound := false
 		for _, m := range result.Models {
