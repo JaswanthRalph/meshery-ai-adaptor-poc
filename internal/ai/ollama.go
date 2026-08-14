@@ -149,13 +149,13 @@ func (p *OllamaProvider) Generate(ctx context.Context, input *GenerateInput) (*G
 
 	resp, err := p.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("Ollama request failed: %w", err)
+		return nil, fmt.Errorf("ollama request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		respBody, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("Ollama returned %d: %s", resp.StatusCode, string(respBody))
+		return nil, fmt.Errorf("ollama returned %d: %s", resp.StatusCode, string(respBody))
 	}
 
 	if input.TokenStream != nil {

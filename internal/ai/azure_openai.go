@@ -35,10 +35,10 @@ type AzureOpenAIProvider struct {
 
 func NewAzureOpenAIProvider(conn *models.Connection, cred *models.Credential) (Provider, error) {
 	if cred == nil || cred.Secret["api_key"] == "" {
-		return nil, fmt.Errorf("Azure OpenAI provider requires an api_key credential")
+		return nil, fmt.Errorf("azure OpenAI provider requires an api_key credential")
 	}
 	if conn.Config["resource_name"] == "" || conn.Config["deployment_id"] == "" {
-		return nil, fmt.Errorf("Azure OpenAI requires resource_name and deployment_id in config")
+		return nil, fmt.Errorf("azure OpenAI requires resource_name and deployment_id in config")
 	}
 	return &AzureOpenAIProvider{
 		conn:   conn,
@@ -137,7 +137,7 @@ func (p *AzureOpenAIProvider) Generate(ctx context.Context, input *GenerateInput
 
 	resp, err := p.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("Azure OpenAI request failed: %w", err)
+		return nil, fmt.Errorf("azure OpenAI request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -147,7 +147,7 @@ func (p *AzureOpenAIProvider) Generate(ctx context.Context, input *GenerateInput
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Azure OpenAI returned %d: %s", resp.StatusCode, string(respBody))
+		return nil, fmt.Errorf("azure OpenAI returned %d: %s", resp.StatusCode, string(respBody))
 	}
 
 	var result struct {
@@ -165,7 +165,7 @@ func (p *AzureOpenAIProvider) Generate(ctx context.Context, input *GenerateInput
 	}
 
 	if len(result.Choices) == 0 {
-		return nil, fmt.Errorf("Azure OpenAI returned no choices")
+		return nil, fmt.Errorf("azure OpenAI returned no choices")
 	}
 
 	if input.TokenStream != nil {

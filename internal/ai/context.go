@@ -137,7 +137,7 @@ var FewShotExamples = []struct {
 }{
 	{
 		Prompt: "Deploy a simple nginx web server",
-		Design: fmt.Sprintf(`{
+		Design: `{
   "name": "nginx-simple",
   "schema_version": "designs.meshery.io/v1beta1",
   "version": "1.0.0",
@@ -171,7 +171,7 @@ var FewShotExamples = []struct {
   "relationships": [
     {"kind": "edge", "type": "network", "source": "nginx-service", "target": "nginx-deployment"}
   ]
-}`),
+}`,
 	},
 }
 

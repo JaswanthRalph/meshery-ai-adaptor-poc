@@ -35,7 +35,7 @@ type AnthropicProvider struct {
 
 func NewAnthropicProvider(conn *models.Connection, cred *models.Credential) (Provider, error) {
 	if cred == nil || cred.Secret["api_key"] == "" {
-		return nil, fmt.Errorf("Anthropic provider requires an api_key credential")
+		return nil, fmt.Errorf("anthropic provider requires an api_key credential")
 	}
 	return &AnthropicProvider{
 		conn:   conn,
@@ -145,7 +145,7 @@ func (p *AnthropicProvider) Generate(ctx context.Context, input *GenerateInput) 
 
 	resp, err := p.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("Anthropic API request failed: %w", err)
+		return nil, fmt.Errorf("anthropic request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -155,7 +155,7 @@ func (p *AnthropicProvider) Generate(ctx context.Context, input *GenerateInput) 
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Anthropic API returned %d: %s", resp.StatusCode, string(respBody))
+		return nil, fmt.Errorf("anthropic returned %d: %s", resp.StatusCode, string(respBody))
 	}
 
 	var result struct {
@@ -168,11 +168,11 @@ func (p *AnthropicProvider) Generate(ctx context.Context, input *GenerateInput) 
 		} `json:"usage"`
 	}
 	if err := json.Unmarshal(respBody, &result); err != nil {
-		return nil, fmt.Errorf("failed to parse Anthropic response: %w", err)
+		return nil, fmt.Errorf("failed to parse anthropic response: %w", err)
 	}
 
 	if len(result.Content) == 0 {
-		return nil, fmt.Errorf("Anthropic returned no content")
+		return nil, fmt.Errorf("anthropic returned empty content")
 	}
 
 	if input.TokenStream != nil {
