@@ -45,7 +45,7 @@ All log statements use safe projections. Health check messages are redacted befo
 
 ## What Data Is Sent to Providers
 
-When using a hosted provider (OpenAI, Anthropic, Azure OpenAI):
+When using a hosted provider (OpenAI, Anthropic, Azure OpenAI, Google Cloud Vertex AI):
 
 | Data | Sent? | Notes |
 |------|-------|-------|

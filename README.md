@@ -24,23 +24,31 @@ This proof of concept implements the complete path from **user-supplied AI crede
 
 ## 🏗 Architecture
 
-```
-User Prompt ("Deploy 3-replica nginx with LoadBalancer")
-    ↓
-[1] Resolve AI Connection & Credential (per-user, from DB)
-    ↓
-[2] Build Prompt Context (system prompt + Meshery schemas + intent)
-    ↓
-[3] Provider.Generate() → raw LLM output
-    ↓
-[4] Parse & Normalize → extract Design JSON
-    ↓
-[5] Schema Validation → validate components, relationships
-    ↓
-[6] Secret Redaction → ensure no credential material in output
-    ↓
-[7] Return candidate Design for human review
-    ⚠️  NEVER auto-deploys — human review required
+```mermaid
+graph TD
+    User([User Prompt]) --> |"Deploy 3-replica nginx with LoadBalancer"| A[Resolve Connection & Credential]
+    A --> |Per-user, from DB| B[Build Prompt Context]
+    B --> |System prompt + Schemas + Intent| C[Provider.Generate]
+    
+    subgraph BYOM Providers
+        C --> OpenAI
+        C --> Anthropic
+        C --> Ollama
+        C --> AzureOpenAI[Azure OpenAI]
+        C --> VertexAI[Google Vertex AI]
+    end
+    
+    OpenAI --> D
+    Anthropic --> D
+    Ollama --> D
+    AzureOpenAI --> D
+    VertexAI --> D
+    
+    D[Parse & Normalize] --> |Extract Design JSON| E[Schema Validation]
+    E --> |Validate components, relationships| F[Secret Redaction]
+    F --> |Ensure no credentials| G([Return Candidate Design])
+    
+    style G fill:#f9f,stroke:#333,stroke-width:2px
 ```
 
 ### Provider Abstraction (BYOM)
@@ -167,24 +175,34 @@ meshery-ai-adapter-poc/
 │   │   ├── provider.go              # Provider interface (BYOM core)
 │   │   ├── registry.go              # Provider registry & factory
 │   │   ├── openai.go                # OpenAI provider
+│   │   ├── openai_test.go           # OpenAI tests
 │   │   ├── anthropic.go             # Anthropic Claude provider
+│   │   ├── anthropic_test.go        # Anthropic tests
 │   │   ├── ollama.go                # Ollama local provider
+│   │   ├── ollama_test.go           # Ollama tests
 │   │   ├── azure_openai.go          # Azure OpenAI provider
+│   │   ├── azure_openai_test.go     # Azure OpenAI tests
+│   │   ├── vertex_ai.go             # Google Vertex AI provider
+│   │   ├── vertex_ai_test.go        # Google Vertex AI tests
 │   │   ├── context.go               # System prompt & schema context
 │   │   ├── pipeline.go              # NL→Design generation pipeline
+│   │   ├── pipeline_test.go         # Pipeline generation tests
 │   │   ├── redaction.go             # Secret redaction utilities
 │   │   ├── redaction_test.go        # Secret redaction tests
 │   │   └── provider_swap_test.go    # Provider swap & integration tests
 │   │
 │   ├── models/
 │   │   ├── connection.go            # Connection & Credential models
-│   │   └── design.go                # Design, Component, Relationship models
+│   │   ├── design.go                # Design, Component, Relationship models
+│   │   └── design_test.go           # Design schema tests
 │   │
 │   ├── handlers/
-│   │   └── handlers.go              # HTTP API handlers
+│   │   ├── handlers.go              # HTTP API handlers
+│   │   └── handlers_test.go         # API handler tests
 │   │
 │   └── store/
-│       └── store.go                 # In-memory store (PoC)
+│       ├── store.go                 # In-memory store (PoC)
+│       └── store_test.go            # Store tests
 │
 ├── cmd/
 │   └── mesheryctl-ai/
