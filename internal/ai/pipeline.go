@@ -99,11 +99,14 @@ func (p *Pipeline) Execute(
 	if progressChan != nil {
 		tokenChan := make(chan string, 100)
 		input.TokenStream = tokenChan
+		doneFlushing := make(chan struct{})
 		go func() {
 			for token := range tokenChan {
 				progressChan <- "TOKEN:" + token
 			}
+			close(doneFlushing)
 		}()
+		defer func() { <-doneFlushing }()
 	}
 
 	// Step 3: Call provider
