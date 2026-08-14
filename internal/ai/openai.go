@@ -159,7 +159,7 @@ func (p *OpenAIProvider) Generate(ctx context.Context, input *GenerateInput) (*G
 		defer close(input.TokenStream)
 		scanner := bufio.NewScanner(resp.Body)
 		var fullContent strings.Builder
-		
+
 		for scanner.Scan() {
 			line := scanner.Text()
 			if strings.HasPrefix(line, "data: ") {
@@ -183,7 +183,7 @@ func (p *OpenAIProvider) Generate(ctx context.Context, input *GenerateInput) (*G
 				}
 			}
 		}
-		
+
 		return &GenerateOutput{
 			RawResponse: fullContent.String(),
 			Model:       model,

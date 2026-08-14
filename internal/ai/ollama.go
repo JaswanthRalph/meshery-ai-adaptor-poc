@@ -162,7 +162,7 @@ func (p *OllamaProvider) Generate(ctx context.Context, input *GenerateInput) (*G
 		defer close(input.TokenStream)
 		scanner := bufio.NewScanner(resp.Body)
 		var fullContent strings.Builder
-		
+
 		for scanner.Scan() {
 			line := scanner.Text()
 			var chunk struct {
@@ -179,7 +179,7 @@ func (p *OllamaProvider) Generate(ctx context.Context, input *GenerateInput) (*G
 				}
 			}
 		}
-		
+
 		return &GenerateOutput{
 			RawResponse: fullContent.String(),
 			Model:       model,

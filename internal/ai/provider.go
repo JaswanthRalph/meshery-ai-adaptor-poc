@@ -57,8 +57,8 @@ type GenerateInput struct {
 	UserPrompt    string
 	SystemPrompt  string
 	SchemaContext string
-	Model         string // Override model if specified in connection config
-	JSONMode      bool   // If true, the provider should force JSON output
+	Model         string        // Override model if specified in connection config
+	JSONMode      bool          // If true, the provider should force JSON output
 	TokenStream   chan<- string // Channel for the provider to stream tokens
 }
 
