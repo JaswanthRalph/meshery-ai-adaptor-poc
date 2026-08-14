@@ -235,6 +235,7 @@ meshery-ai-adapter-poc/
 ├── Dockerfile                       # Multi-stage lightweight build
 ├── docker-compose.yml               # Cloud-native deployment manifest
 └── .github/workflows/ci.yml         # GitHub Actions CI pipeline
+```
 
 ## 🔌 API Reference
 
