@@ -135,7 +135,7 @@ func TestHandleCredentials(t *testing.T) {
 	}
 
 	var credResp models.CredentialResponse
-	json.Unmarshal(rr.Body.Bytes(), &credResp)
+	_ = json.Unmarshal(rr.Body.Bytes(), &credResp)
 
 	if credResp.Name != "test-cred" {
 		t.Errorf("Expected name 'test-cred', got '%s'", credResp.Name)

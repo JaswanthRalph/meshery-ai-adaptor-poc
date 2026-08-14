@@ -177,7 +177,7 @@ func TestServerEndToEnd(t *testing.T) {
 	}
 
 	var genResp models.GenerationResponse
-	json.NewDecoder(resp.Body).Decode(&genResp)
+	_ = json.NewDecoder(resp.Body).Decode(&genResp)
 	resp.Body.Close()
 
 	if !genResp.Success {
