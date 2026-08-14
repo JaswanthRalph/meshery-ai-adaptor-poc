@@ -271,6 +271,8 @@ This PoC is designed to map directly onto Meshery's existing architecture:
 - [Provider Setup Guide](docs/provider-setup.md) — Step-by-step for each provider
 - [Credential Contract](docs/credential-contract.md) — Security & privacy guarantees
 - [Production Checklist](docs/production-checklist.md) — Pre-deployment verification
+- [OpenAPI 3.0 Specification](docs/openapi.yaml) — Complete REST API definitions
+- [Browse All Documentation](./docs/) — View the entire docs directory
 
 ## 🛠️ Contributor Standards
 
