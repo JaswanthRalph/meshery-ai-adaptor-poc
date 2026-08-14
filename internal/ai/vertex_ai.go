@@ -1,3 +1,17 @@
+// Copyright 2026 The Meshery Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package ai
 
 import (
@@ -86,7 +100,7 @@ func (p *VertexAIProvider) HealthCheck(ctx context.Context) (*models.HealthStatu
 			},
 		},
 	}
-	
+
 	body, _ := json.Marshal(payload)
 	req, err := http.NewRequestWithContext(ctx, "POST", p.endpoint("countTokens"), bytes.NewBuffer(body))
 	if err != nil {
@@ -154,7 +168,7 @@ func (p *VertexAIProvider) Generate(ctx context.Context, input *GenerateInput) (
 		},
 		"generationConfig": map[string]interface{}{
 			"temperature": 0.2,
-			// No direct json_object response format in some older Gemini APIs unless using tools/function calling, 
+			// No direct json_object response format in some older Gemini APIs unless using tools/function calling,
 			// but we can enforce it via prompt.
 		},
 	}
@@ -206,6 +220,11 @@ func (p *VertexAIProvider) Generate(ctx context.Context, input *GenerateInput) (
 	}
 
 	text := vertexResp.Candidates[0].Content.Parts[0].Text
+
+	if input.TokenStream != nil {
+		input.TokenStream <- text
+		close(input.TokenStream)
+	}
 
 	return &GenerateOutput{
 		RawResponse: text,

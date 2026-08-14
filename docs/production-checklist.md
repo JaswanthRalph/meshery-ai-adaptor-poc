@@ -32,8 +32,9 @@ Use this checklist before enabling AI generation in a production Meshery deploym
 
 - [ ] Generation NEVER auto-deploys (verify: pipeline returns candidate only)
 - [ ] Generated Designs pass schema validation before reaching the UI
+- [ ] LLM schema context is dynamically fetched from the target Meshery cluster registry
 - [ ] Dry-run validation against target cluster is available
-- [ ] Users can review, edit, and explicitly approve before deployment
+- [ ] Users can review, edit, and explicitly approve before deployment via Kanvas integration
 - [ ] Generation results include operationId for audit correlation
 
 ## ✅ Monitoring & Audit

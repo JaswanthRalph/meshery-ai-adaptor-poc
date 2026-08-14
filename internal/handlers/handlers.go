@@ -1,3 +1,17 @@
+// Copyright 2026 The Meshery Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // Package handlers implements the HTTP API layer for the Meshery
 // AI Adapter PoC. Routes follow the Meshery API pattern:
 //
@@ -124,10 +138,10 @@ func (h *Handler) handleConnections(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, conns)
 	case "POST":
 		var req struct {
-			Name         string            `json:"name"`
+			Name         string              `json:"name"`
 			Kind         models.ProviderKind `json:"kind"`
-			Config       map[string]string `json:"config"`
-			CredentialID string            `json:"credential_id"`
+			Config       map[string]string   `json:"config"`
+			CredentialID string              `json:"credential_id"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			writeError(w, http.StatusBadRequest, "Invalid request body: %v", err)
@@ -209,9 +223,9 @@ func (h *Handler) handleCredentials(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, safe)
 	case "POST":
 		var req struct {
-			Name   string            `json:"name"`
+			Name   string              `json:"name"`
 			Kind   models.ProviderKind `json:"kind"`
-			Secret map[string]string `json:"secret"`
+			Secret map[string]string   `json:"secret"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			writeError(w, http.StatusBadRequest, "Invalid request body: %v", err)
@@ -369,9 +383,44 @@ func (h *Handler) handleGenerate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	isSSE := r.Header.Get("Accept") == "text/event-stream"
+	var progressChan chan string
+	if isSSE {
+		progressChan = make(chan string, 10)
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Connection", "keep-alive")
+
+		if flusher, ok := w.(http.Flusher); ok {
+			go func() {
+				for msg := range progressChan {
+					if strings.HasPrefix(msg, "TOKEN:") {
+						token := strings.TrimPrefix(msg, "TOKEN:")
+						jsonBytes, _ := json.Marshal(map[string]string{"token": token})
+						fmt.Fprintf(w, "data: %s\n\n", string(jsonBytes))
+					} else {
+						fmt.Fprintf(w, "data: {\"status\": \"%s\"}\n\n", msg)
+					}
+					flusher.Flush()
+				}
+			}()
+		} else {
+			isSSE = false
+			progressChan = nil
+		}
+	}
+
 	// Execute generation pipeline
-	response, err := h.pipeline.Execute(r.Context(), conn, cred, req.Prompt)
+	response, err := h.pipeline.Execute(r.Context(), conn, cred, req.Prompt, progressChan)
+	if progressChan != nil {
+		close(progressChan)
+	}
+
 	if err != nil {
+		if isSSE {
+			fmt.Fprintf(w, "data: {\"error\": \"%v\"}\n\n", err)
+			return
+		}
 		writeError(w, http.StatusInternalServerError, "Generation failed: %v", err)
 		return
 	}
@@ -379,6 +428,15 @@ func (h *Handler) handleGenerate(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[GENERATE] Provider=%s model=%s success=%v latency=%dms — operationId=%s",
 		response.ProviderKind, response.Model, response.Success,
 		response.LatencyMs, response.OperationID)
+
+	if isSSE {
+		jsonBytes, _ := json.Marshal(response)
+		fmt.Fprintf(w, "data: {\"result\": %s}\n\n", string(jsonBytes))
+		if flusher, ok := w.(http.Flusher); ok {
+			flusher.Flush()
+		}
+		return
+	}
 
 	writeJSON(w, http.StatusOK, response)
 }

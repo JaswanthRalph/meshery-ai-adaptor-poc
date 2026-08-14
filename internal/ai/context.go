@@ -1,8 +1,24 @@
+// Copyright 2026 The Meshery Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package ai
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
+	"time"
 )
 
 // ContextBuilder constructs the system prompt and schema context
@@ -83,12 +99,27 @@ config: {scaleTargetRef: {apiVersion, kind, name}, minReplicas, maxReplicas, met
 ### Namespace (v1)
 config: {}`
 
+// FetchDynamicSchemas attempts to pull real schemas from a local Meshery server.
+// If it fails (e.g. server not running), it falls back to the hardcoded SchemaContext.
+func FetchDynamicSchemas() string {
+	client := &http.Client{Timeout: 2 * time.Second}
+	resp, err := client.Get("http://localhost:9081/api/meshmodels/models?pagesize=1")
+	if err == nil && resp.StatusCode == 200 {
+		defer resp.Body.Close()
+		// We've successfully connected to Meshery. In a full integration, we would parse
+		// the JSON and extract the actual CRD schemas. For this PoC, we append a notice.
+		return SchemaContext + "\n\n(Dynamic Schema Note: Connection to Meshery established. Real schemas would be injected here.)"
+	}
+	return SchemaContext
+}
+
 // BuildPromptContext creates the full context for a generation request.
 func BuildPromptContext(userPrompt string) *GenerateInput {
 	return &GenerateInput{
 		UserPrompt:    userPrompt,
 		SystemPrompt:  SystemPrompt,
-		SchemaContext: SchemaContext,
+		SchemaContext: FetchDynamicSchemas(),
+		JSONMode:      true, // Enable JSON mode by default
 	}
 }
 

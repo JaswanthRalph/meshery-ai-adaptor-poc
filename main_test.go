@@ -1,3 +1,17 @@
+// Copyright 2026 The Meshery Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
@@ -48,8 +62,8 @@ func (m *mockProvider) Generate(ctx context.Context, input *ai.GenerateInput) (*
 }
 
 func setupTestServer() (*httptest.Server, *store.Store) {
-	dataStore := store.New()
-	
+	dataStore, _ := store.New()
+
 	registry := ai.NewRegistry()
 	// Register the mock provider to avoid hitting real APIs
 	registry.Register("mock", func(conn *models.Connection, cred *models.Credential) (ai.Provider, error) {
@@ -100,7 +114,7 @@ func TestServerEndToEnd(t *testing.T) {
 	if cred.ID == "" {
 		t.Fatal("Expected credential ID to be returned")
 	}
-	if val, ok := cred.SecretMasked["api_key"]; !ok || val == "sk-super-secret" {
+	if val, ok := cred.HasSecret["api_key"]; !ok || !val {
 		t.Fatalf("Secret leaked in response: %v", val)
 	}
 
@@ -162,7 +176,7 @@ func TestServerEndToEnd(t *testing.T) {
 		t.Fatalf("Expected 200 OK for generate, got %v. Body: %s", resp.StatusCode, string(b))
 	}
 
-	var genResp ai.PipelineResponse
+	var genResp models.GenerationResponse
 	json.NewDecoder(resp.Body).Decode(&genResp)
 	resp.Body.Close()
 

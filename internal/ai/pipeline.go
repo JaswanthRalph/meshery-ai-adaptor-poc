@@ -1,3 +1,17 @@
+// Copyright 2026 The Meshery Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package ai
 
 import (
@@ -39,9 +53,18 @@ func (p *Pipeline) Execute(
 	conn *models.Connection,
 	cred *models.Credential,
 	prompt string,
+	progressChan chan<- string,
 ) (*models.GenerationResponse, error) {
 	start := time.Now()
 	operationID := uuid.New().String()
+
+	notify := func(msg string) {
+		if progressChan != nil {
+			progressChan <- msg
+		}
+	}
+
+	notify("Resolving provider connection...")
 
 	response := &models.GenerationResponse{
 		OperationID:  operationID,
@@ -63,6 +86,7 @@ func (p *Pipeline) Execute(
 	}
 
 	// Step 2: Build prompt context with system prompt and schema
+	notify("Building prompt context...")
 	input := BuildPromptContext(prompt)
 	input.SystemPrompt = EnhanceSystemPromptWithExamples(input.SystemPrompt)
 
@@ -71,7 +95,19 @@ func (p *Pipeline) Execute(
 		input.Model = model
 	}
 
+	// Setup streaming if progress channel is available
+	if progressChan != nil {
+		tokenChan := make(chan string, 100)
+		input.TokenStream = tokenChan
+		go func() {
+			for token := range tokenChan {
+				progressChan <- "TOKEN:" + token
+			}
+		}()
+	}
+
 	// Step 3: Call provider
+	notify("Calling AI provider...")
 	output, err := provider.Generate(ctx, input)
 	if err != nil {
 		response.Success = false
@@ -94,9 +130,11 @@ func (p *Pipeline) Execute(
 	response.RawOutput = rawOutput
 
 	// Step 5: Parse Design from LLM output
+	notify("Parsing raw output...")
 	design, parseErrors := ParseDesignFromLLMOutput(rawOutput)
 	if design != nil {
 		// Step 6: Validate the parsed Design
+		notify("Validating Meshery v1beta1 schema...")
 		validationErrors := ValidateDesign(design)
 
 		// Step 7: Redact secrets from all design fields

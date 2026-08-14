@@ -1,12 +1,28 @@
+// Copyright 2026 The Meshery Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package ai
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/meshery/ai-adapter-poc/internal/models"
@@ -105,6 +121,13 @@ func (p *OpenAIProvider) Generate(ctx context.Context, input *GenerateInput) (*G
 		"max_tokens":  4096,
 	}
 
+	if input.JSONMode {
+		body["response_format"] = map[string]string{"type": "json_object"}
+	}
+	if input.TokenStream != nil {
+		body["stream"] = true
+	}
+
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
@@ -127,13 +150,49 @@ func (p *OpenAIProvider) Generate(ctx context.Context, input *GenerateInput) (*G
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != 200 {
+		respBody, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("OpenAI API returned %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	if input.TokenStream != nil {
+		defer close(input.TokenStream)
+		scanner := bufio.NewScanner(resp.Body)
+		var fullContent strings.Builder
+		
+		for scanner.Scan() {
+			line := scanner.Text()
+			if strings.HasPrefix(line, "data: ") {
+				data := strings.TrimPrefix(line, "data: ")
+				if data == "[DONE]" {
+					break
+				}
+				var chunk struct {
+					Choices []struct {
+						Delta struct {
+							Content string `json:"content"`
+						} `json:"delta"`
+					} `json:"choices"`
+				}
+				if err := json.Unmarshal([]byte(data), &chunk); err == nil && len(chunk.Choices) > 0 {
+					text := chunk.Choices[0].Delta.Content
+					if text != "" {
+						fullContent.WriteString(text)
+						input.TokenStream <- text
+					}
+				}
+			}
+		}
+		
+		return &GenerateOutput{
+			RawResponse: fullContent.String(),
+			Model:       model,
+		}, nil
+	}
+
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response: %w", err)
-	}
-
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("OpenAI API returned %d: %s", resp.StatusCode, string(respBody))
 	}
 
 	var result struct {

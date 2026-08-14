@@ -1,3 +1,17 @@
+// Copyright 2026 The Meshery Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package models
 
 import "time"
@@ -12,25 +26,25 @@ type GenerationRequest struct {
 // GenerationResponse is the API response containing either a
 // candidate Design or structured validation errors.
 type GenerationResponse struct {
-	Success          bool               `json:"success"`
-	OperationID      string             `json:"operation_id"`
-	Design           *Design            `json:"design,omitempty"`
-	ValidationErrors []ValidationError  `json:"validation_errors,omitempty"`
-	RawOutput        string             `json:"raw_output,omitempty"` // For debugging; secrets redacted
-	ProviderKind     ProviderKind       `json:"provider_kind"`
-	Model            string             `json:"model_used"`
-	GeneratedAt      time.Time          `json:"generated_at"`
-	LatencyMs        int64              `json:"latency_ms"`
+	Success          bool              `json:"success"`
+	OperationID      string            `json:"operation_id"`
+	Design           *Design           `json:"design,omitempty"`
+	ValidationErrors []ValidationError `json:"validation_errors,omitempty"`
+	RawOutput        string            `json:"raw_output,omitempty"` // For debugging; secrets redacted
+	ProviderKind     ProviderKind      `json:"provider_kind"`
+	Model            string            `json:"model_used"`
+	GeneratedAt      time.Time         `json:"generated_at"`
+	LatencyMs        int64             `json:"latency_ms"`
 }
 
 // Design represents a Meshery Design document — the output of
 // the NL→Infrastructure generation pipeline.
 type Design struct {
-	Name         string           `json:"name"`
-	SchemaVersion string          `json:"schema_version"`
-	Version      string           `json:"version"`
-	Components   []Component      `json:"components"`
-	Relationships []Relationship  `json:"relationships,omitempty"`
+	Name          string         `json:"name"`
+	SchemaVersion string         `json:"schema_version"`
+	Version       string         `json:"version"`
+	Components    []Component    `json:"components"`
+	Relationships []Relationship `json:"relationships,omitempty"`
 }
 
 // Component represents a single infrastructure component within a Design
@@ -63,10 +77,10 @@ type ValidationError struct {
 
 // HealthStatus represents the result of a provider connectivity check.
 type HealthStatus struct {
-	Status      string `json:"status"`       // connected, unreachable, auth_failed, rate_limited
-	Latency     int64  `json:"latency_ms"`
-	ModelInfo   string `json:"model_info"`
-	Message     string `json:"message,omitempty"`
-	OperationID string `json:"operation_id"`
+	Status      string    `json:"status"` // connected, unreachable, auth_failed, rate_limited
+	Latency     int64     `json:"latency_ms"`
+	ModelInfo   string    `json:"model_info"`
+	Message     string    `json:"message,omitempty"`
+	OperationID string    `json:"operation_id"`
 	CheckedAt   time.Time `json:"checked_at"`
 }

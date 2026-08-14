@@ -1,0 +1,21 @@
+services:
+  adapter:
+    build: .
+    ports:
+      - "9082:9082"
+    environment:
+      - PORT=9082
+    volumes:
+      - adapter-data:/app
+
+  # Uncomment the below block to easily test local inference
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama-data:/root/.ollama
+
+volumes:
+  adapter-data:
+  ollama-data:

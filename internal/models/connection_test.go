@@ -1,3 +1,17 @@
+// Copyright 2026 The Meshery Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package models
 
 import (
@@ -24,10 +38,10 @@ func TestCredential_ToResponse(t *testing.T) {
 		t.Errorf("Expected Kind %s, got %s", ProviderOpenAI, resp.Kind)
 	}
 
-	if val, ok := resp.SecretMasked["api_key"]; !ok || val != "********" {
-		t.Errorf("Expected api_key to be masked, got: %v", val)
+	if val, ok := resp.HasSecret["api_key"]; !ok || !val {
+		t.Error("Expected HasSecret to contain 'api_key' as true")
 	}
-	if val, ok := resp.SecretMasked["org"]; !ok || val != "********" {
-		t.Errorf("Expected org to be masked, got: %v", val)
+	if val, ok := resp.HasSecret["org"]; !ok || !val {
+		t.Error("Expected HasSecret to contain 'org' as true")
 	}
 }

@@ -18,9 +18,16 @@ This proof of concept implements the complete path from **user-supplied AI crede
 |---|---|---|
 | 1 | Connection & Credential support for 5+ provider kinds | ✅ OpenAI, Anthropic, Ollama, Azure OpenAI, Google Vertex AI |
 | 2 | Create Connection wizard + health checks with operationId | ✅ Multi-step wizard + per-provider health checks |
-| 3 | End-to-end NL→Design generation with validation | ✅ Full pipeline with schema validation |
+| 3 | End-to-end NL→Design generation with validation | ✅ Real-time Token Streaming (SSE) pipeline with strict JSON Mode and schema validation |
 | 4 | Provider swap (hosted ↔ local) with secret redaction | ✅ Verified by tests |
-| 5 | Documentation covering setup, credential contract, privacy | ✅ Included |
+| 5 | Documentation covering setup, credential contract, privacy | ✅ Included, plus full OpenAPI 3.0 specs |
+
+### 🌟 Advanced Capabilities
+
+- **Real-Time Token Streaming**: Provides a responsive UI by streaming generated text via Server-Sent Events (SSE).
+- **Native JSON Mode**: Enforces strict structured output formatting natively in the LLM (e.g., OpenAI's `json_object`, Ollama's `json`) to guarantee valid JSON schema generation without relying on string-parsing hacks.
+- **Dynamic Schema Fetching**: Connects to the local Meshery Server (`/api/meshmodels/models`) to ground the LLM with real, up-to-date component schemas.
+- **Kanvas Integration**: Exports the generated Design directly to Meshery's visual designer via a 1-click "Open in Kanvas" button.
 
 ## 🏗 Architecture
 
@@ -74,13 +81,17 @@ mesheryctl-ai connection create --kind ollama --model llama3.1
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Run via Docker (Recommended)
+
+The easiest way to run the PoC is using Docker Compose. This spins up the adapter backend and the embedded UI on port 9082.
+
+```bash
+docker compose up --build
+```
+
+### Run Locally (Go)
 
 - Go 1.22+
-- (Optional) An OpenAI/Anthropic API key for live generation
-- (Optional) Ollama running locally for private inference
-
-### Run the Server
 
 ```bash
 cd meshery-ai-adapter-poc
@@ -109,9 +120,11 @@ go test ./internal/ai/ -run TestPipeline -v
 ### Build the CLI
 
 ```bash
-go build -o mesheryctl-ai ./cmd/mesheryctl-ai/
+make build
 ./mesheryctl-ai --help
 ```
+
+> **Note:** This `mesheryctl-ai` CLI is a minimal proof-of-concept. The final integration into Meshery will utilize Meshery's existing **Cobra** and **Viper** framework architecture.
 
 ### CLI Usage
 
@@ -211,13 +224,17 @@ meshery-ai-adapter-poc/
 ├── ui/
 │   ├── index.html                   # UI: Connection wizard + generation
 │   ├── styles.css                   # Premium dark-mode design system
-│   └── app.js                       # Frontend application
+│   ├── app.js                       # Frontend application
 │
-└── docs/
-    ├── provider-setup.md            # Provider setup guide
-    ├── credential-contract.md       # Credential & privacy docs
-    └── production-checklist.md      # AI production checklist
-```
+├── docs/
+│   ├── openapi.yaml                 # OpenAPI v3 Specification
+│   ├── provider-setup.md            # Provider setup guide
+│   ├── credential-contract.md       # Credential & privacy docs
+│   └── production-checklist.md      # AI production checklist
+│
+├── Dockerfile                       # Multi-stage lightweight build
+├── docker-compose.yml               # Cloud-native deployment manifest
+└── .github/workflows/ci.yml         # GitHub Actions CI pipeline
 
 ## 🔌 API Reference
 
@@ -254,6 +271,13 @@ This PoC is designed to map directly onto Meshery's existing architecture:
 - [Provider Setup Guide](docs/provider-setup.md) — Step-by-step for each provider
 - [Credential Contract](docs/credential-contract.md) — Security & privacy guarantees
 - [Production Checklist](docs/production-checklist.md) — Pre-deployment verification
+
+## 🛠️ Contributor Standards
+
+This codebase aligns with Layer5 and CNCF contributor guidelines:
+- **Make Tooling**: All builds and tests are unified under `Makefile` targets (`make build`, `make test`, `make fmt`, `make lint`).
+- **Idiomatic Go**: Formatting enforced via `gofmt`.
+- **License Compliance**: All source files include Apache 2.0 copyright headers.
 
 ## 📄 License
 

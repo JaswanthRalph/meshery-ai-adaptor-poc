@@ -1,3 +1,17 @@
+// Copyright 2026 The Meshery Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // Package models defines the core data types for Meshery AI provider
 // connections and credentials. These mirror Meshery's first-class
 // Connection and Credential constructs, ensuring AI providers are
@@ -12,12 +26,12 @@ import (
 type ConnectionStatus string
 
 const (
-	StatusDiscovered  ConnectionStatus = "discovered"
-	StatusRegistered  ConnectionStatus = "registered"
-	StatusConnected   ConnectionStatus = "connected"
+	StatusDiscovered   ConnectionStatus = "discovered"
+	StatusRegistered   ConnectionStatus = "registered"
+	StatusConnected    ConnectionStatus = "connected"
 	StatusDisconnected ConnectionStatus = "disconnected"
-	StatusNotFound    ConnectionStatus = "not_found"
-	StatusError       ConnectionStatus = "error"
+	StatusNotFound     ConnectionStatus = "not_found"
+	StatusError        ConnectionStatus = "error"
 )
 
 // ProviderKind identifies the AI provider type.
@@ -34,27 +48,27 @@ const (
 // Connection represents a registered AI provider connection.
 // It is the Meshery Connection construct applied to AI/LLM backends.
 type Connection struct {
-	ID           string            `json:"id"`
+	ID           string            `json:"id" gorm:"primaryKey"`
 	Name         string            `json:"name"`
 	Kind         ProviderKind      `json:"kind"`
 	Status       ConnectionStatus  `json:"status"`
-	Config       map[string]string `json:"config"`       // Provider-specific config (base_url, model, etc.)
-	CredentialID string            `json:"credential_id"` // Reference to associated Credential
-	UserID       string            `json:"user_id"`       // Owner - connections are per-user
+	Config       map[string]string `json:"config" gorm:"serializer:json"` // Provider-specific config (base_url, model, etc.)
+	CredentialID string            `json:"credential_id" gorm:"index"`    // Reference to associated Credential
+	UserID       string            `json:"user_id" gorm:"index"`          // Owner - connections are per-user
 	CreatedAt    time.Time         `json:"created_at"`
 	UpdatedAt    time.Time         `json:"updated_at"`
-	Metadata     map[string]string `json:"metadata,omitempty"`
+	Metadata     map[string]string `json:"metadata,omitempty" gorm:"serializer:json"`
 }
 
 // Credential stores encrypted authentication material.
 // Secrets are never returned to API clients; the Secret field
 // is omitted from all JSON serialization.
 type Credential struct {
-	ID        string            `json:"id"`
+	ID        string            `json:"id" gorm:"primaryKey"`
 	Name      string            `json:"name"`
 	Kind      ProviderKind      `json:"kind"`
-	UserID    string            `json:"user_id"`
-	Secret    map[string]string `json:"-"`          // NEVER serialized to JSON
+	UserID    string            `json:"user_id" gorm:"index"`
+	Secret    map[string]string `json:"-" gorm:"serializer:json"` // NEVER serialized to JSON
 	CreatedAt time.Time         `json:"created_at"`
 	UpdatedAt time.Time         `json:"updated_at"`
 }
@@ -62,13 +76,13 @@ type Credential struct {
 // CredentialResponse is the safe projection of a Credential
 // returned to API clients. Secrets are replaced with existence flags.
 type CredentialResponse struct {
-	ID        string            `json:"id"`
-	Name      string            `json:"name"`
-	Kind      ProviderKind      `json:"kind"`
-	UserID    string            `json:"user_id"`
-	HasSecret map[string]bool   `json:"has_secret"` // e.g., {"api_key": true}
-	CreatedAt time.Time         `json:"created_at"`
-	UpdatedAt time.Time         `json:"updated_at"`
+	ID        string          `json:"id"`
+	Name      string          `json:"name"`
+	Kind      ProviderKind    `json:"kind"`
+	UserID    string          `json:"user_id"`
+	HasSecret map[string]bool `json:"has_secret"` // e.g., {"api_key": true}
+	CreatedAt time.Time       `json:"created_at"`
+	UpdatedAt time.Time       `json:"updated_at"`
 }
 
 // ToResponse converts a Credential to a safe CredentialResponse,

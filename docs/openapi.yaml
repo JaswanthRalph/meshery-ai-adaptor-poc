@@ -1,0 +1,96 @@
+openapi: 3.0.3
+info:
+  title: Meshery AI Adapter POC
+  version: 1.0.0
+  description: BYOM Adapter for AI and LLMs for Meshery, allowing natural language to infrastructure design generation.
+paths:
+  /api/ai/providers:
+    get:
+      summary: List supported AI providers
+      responses:
+        '200':
+          description: A list of supported providers
+  /api/ai/credentials:
+    post:
+      summary: Create a new credential
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                kind:
+                  type: string
+                secret:
+                  type: object
+                  additionalProperties:
+                    type: string
+      responses:
+        '201':
+          description: Credential created securely (secrets are masked)
+    get:
+      summary: List all credentials (secrets masked)
+      responses:
+        '200':
+          description: A list of credentials
+  /api/ai/connections:
+    post:
+      summary: Create a new connection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                kind:
+                  type: string
+                config:
+                  type: object
+                  additionalProperties:
+                    type: string
+                credential_id:
+                  type: string
+      responses:
+        '201':
+          description: Connection created
+    get:
+      summary: List all connections
+      responses:
+        '200':
+          description: A list of connections
+  /api/ai/connections/{id}/health:
+    get:
+      summary: Check health of a connection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Health status of the connection (connected, auth_failed, unreachable)
+  /api/ai/generate:
+    post:
+      summary: Generate a design from natural language
+      description: "Generates a Meshery design using the provided connection's LLM. Supports SSE streaming if Accept: text/event-stream header is provided."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                connection_id:
+                  type: string
+                prompt:
+                  type: string
+      responses:
+        '200':
+          description: The generated design or a stream of progress events ending in the design.

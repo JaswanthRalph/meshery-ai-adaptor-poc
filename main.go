@@ -1,3 +1,17 @@
+// Copyright 2026 The Meshery Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
@@ -22,8 +36,11 @@ func main() {
 		port = "9082"
 	}
 
-	// Initialize the store (in-memory for PoC; Meshery uses encrypted DB)
-	dataStore := store.New()
+	// Initialize the store (GORM SQLite for data persistence)
+	dataStore, err := store.New()
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
 
 	// Initialize the provider registry with all built-in providers
 	registry := ai.NewRegistry()

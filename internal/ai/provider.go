@@ -1,3 +1,17 @@
+// Copyright 2026 The Meshery Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // Package ai implements the BYOM (Bring Your Own Model) abstraction layer
 // for Meshery's AI-driven Design generation. It defines the Provider
 // interface that all AI/LLM backends must satisfy, enabling seamless
@@ -44,12 +58,14 @@ type GenerateInput struct {
 	SystemPrompt  string
 	SchemaContext string
 	Model         string // Override model if specified in connection config
+	JSONMode      bool   // If true, the provider should force JSON output
+	TokenStream   chan<- string // Channel for the provider to stream tokens
 }
 
 // GenerateOutput is the internal output from a Provider's Generate method.
 type GenerateOutput struct {
-	RawResponse string          // The raw LLM text response
-	Design      *models.Design  // Parsed Design (may be nil if parsing fails)
-	Model       string          // The actual model used
-	TokensUsed  int             // Approximate token usage
+	RawResponse string         // The raw LLM text response
+	Design      *models.Design // Parsed Design (may be nil if parsing fails)
+	Model       string         // The actual model used
+	TokensUsed  int            // Approximate token usage
 }

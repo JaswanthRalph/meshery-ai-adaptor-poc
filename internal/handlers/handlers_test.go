@@ -1,3 +1,17 @@
+// Copyright 2026 The Meshery Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package handlers
 
 import (
@@ -13,7 +27,10 @@ import (
 )
 
 func setupTestHandler() (*Handler, *http.ServeMux) {
-	dataStore := store.New()
+	dataStore, err := store.New()
+	if err != nil {
+		panic("Failed to initialize store: " + err.Error())
+	}
 	registry := ai.NewRegistry()
 	pipeline := ai.NewPipeline(registry)
 	handler := NewHandler(dataStore, registry, pipeline)
@@ -124,10 +141,10 @@ func TestHandleCredentials(t *testing.T) {
 		t.Errorf("Expected name 'test-cred', got '%s'", credResp.Name)
 	}
 	// Verify secret is NOT exposed
-	if len(credResp.SecretMasked) == 0 {
-		t.Error("Expected masked secrets to be populated")
+	if val, ok := credResp.HasSecret["api_key"]; !ok || !val {
+		t.Errorf("Expected HasSecret to contain 'api_key' as true")
 	}
-	if val, ok := credResp.SecretMasked["api_key"]; !ok || val == "sk-secret-123" {
-		t.Errorf("Secret must be masked! Got: %v", val)
+	if _, ok := credResp.HasSecret["password"]; ok {
+		t.Errorf("Did not expect HasSecret to contain 'password'")
 	}
 }

@@ -1,3 +1,17 @@
+// Copyright 2026 The Meshery Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // ═══════════════════════════════════════════════════════════════
 // Meshery AI Adapter PoC — Frontend Application
 // CNCF LFX Mentorship 2026 Term 3
@@ -326,13 +340,54 @@ async function generateDesign() {
   resultDiv.style.display = 'none';
 
   try {
-    const result = await apiFetch('/api/ai/generate', {
+    const response = await fetch(API + '/api/ai/generate', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'text/event-stream' },
       body: JSON.stringify({ prompt, connection_id: connId }),
     });
 
-    lastDesign = result;
-    renderGenerationResult(result);
+    if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n\n');
+      buffer = lines.pop(); // Keep the last incomplete chunk
+
+      for (const chunk of lines) {
+        const line = chunk.trim();
+        if (line.startsWith('data: ')) {
+          try {
+            const data = JSON.parse(line.substring(6));
+            if (data.status) {
+              btn.innerHTML = `<div class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;vertical-align:middle"></div> ${data.status}`;
+            } else if (data.token) {
+              const yamlOut = document.getElementById('yamlOutput');
+              if (resultDiv.style.display === 'none') {
+                resultDiv.style.display = 'block';
+                document.getElementById('componentsGrid').innerHTML = '<div style="color:var(--text-muted);font-size:13px">Streaming...</div>';
+                document.getElementById('yamlOutput').parentElement.open = true; // Auto open details
+                yamlOut.textContent = '';
+              }
+              yamlOut.textContent += data.token;
+            } else if (data.result) {
+              lastDesign = data.result;
+              renderGenerationResult(data.result);
+            } else if (data.error) {
+              throw new Error(data.error);
+            }
+          } catch (e) {
+            // Ignore parse errors from partial streams if any
+          }
+        }
+      }
+    }
   } catch (err) {
     resultDiv.style.display = 'block';
     resultDiv.innerHTML = `<div class="validation-item error">❌ Generation failed: ${escHtml(err.message)}</div>`;
@@ -418,8 +473,43 @@ function renderGenerationResult(result) {
     yamlOut.textContent = JSON.stringify(result.design, null, 2);
   } else if (result.raw_output) {
     yamlOut.textContent = result.raw_output;
-  } else {
+  } else if (!yamlOut.textContent) {
     yamlOut.textContent = JSON.stringify(result, null, 2);
+  }
+
+  // Kanvas Button
+  const kanvasBtn = document.getElementById('kanvasBtn');
+  if (result.success && result.design) {
+    kanvasBtn.disabled = false;
+    kanvasBtn.title = "Export to Meshery Kanvas";
+  } else {
+    kanvasBtn.disabled = true;
+    kanvasBtn.title = "Must generate a valid design first";
+  }
+}
+
+async function openInKanvas() {
+  if (!lastDesign?.design) return;
+  const btn = document.getElementById('kanvasBtn');
+  btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;vertical-align:middle"></div> Opening...';
+  try {
+    const payload = {
+      pattern_data: JSON.stringify(lastDesign.design),
+      name: lastDesign.design.name || "AI-Generated Design"
+    };
+    const res = await fetch('http://localhost:9081/api/pattern', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error("Failed to export to Meshery Server");
+    const data = await res.json();
+    const patternId = data.id || data.pattern_id || data[0]?.id || "";
+    window.open(`http://localhost:9081/extension/meshery-kanvas?design_id=${patternId}`, '_blank');
+  } catch (e) {
+    alert("Failed to export to Kanvas. Ensure Meshery server is running at localhost:9081.\n\n" + e.message);
+  } finally {
+    btn.innerHTML = '🎨 Open in Kanvas';
   }
 }
 
