@@ -111,3 +111,34 @@ Azure OpenAI provides:
 - Enterprise compliance (SOC2, HIPAA, etc.)
 - Azure AD integration
 - Private network deployment
+
+---
+
+## Google Cloud Vertex AI
+
+### Prerequisites
+- A Google Cloud Platform (GCP) project with the Vertex AI API enabled.
+- A service account or an access token with permissions to invoke Vertex AI models.
+
+### Configuration
+
+| Field | Required | Default | Description |
+|-------|----------|---------|-------------|
+| `project_id` | **Yes** | — | GCP Project ID |
+| `location` | No | `us-central1` | GCP Region for the API |
+| `model` | No | `gemini-1.5-pro` | Gemini model name |
+
+### Credential
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `access_token` | Yes | A valid GCP OAuth 2.0 access token |
+
+### CLI Example
+```bash
+mesheryctl-ai connection create \
+  --kind vertex-ai \
+  --name "My Vertex AI" \
+  --config project_id=my-gcp-project,location=us-east1,model=gemini-1.5-flash \
+  --access-token ya29.c.c0...
+```

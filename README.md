@@ -16,7 +16,7 @@ This proof of concept implements the complete path from **user-supplied AI crede
 
 | # | Expected Outcome | Status |
 |---|---|---|
-| 1 | Connection & Credential support for 4+ provider kinds | ✅ OpenAI, Anthropic, Ollama, Azure OpenAI |
+| 1 | Connection & Credential support for 5+ provider kinds | ✅ OpenAI, Anthropic, Ollama, Azure OpenAI, Google Vertex AI |
 | 2 | Create Connection wizard + health checks with operationId | ✅ Multi-step wizard + per-provider health checks |
 | 3 | End-to-end NL→Design generation with validation | ✅ Full pipeline with schema validation |
 | 4 | Provider swap (hosted ↔ local) with secret redaction | ✅ Verified by tests |
