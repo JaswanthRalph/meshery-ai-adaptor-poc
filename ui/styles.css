@@ -279,9 +279,18 @@ body {
 
 .conn-kind {
   font-size: 11px;
-  padding: 2px 8px;
+  padding: 4px 10px;
   border-radius: 100px;
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.conn-kind-icon svg {
+  width: 14px;
+  height: 14px;
+  display: block;
 }
 
 .conn-kind-openai { background: rgba(16,163,127,0.15); color: #10a37f; }
@@ -744,7 +753,16 @@ body {
   box-shadow: var(--shadow-glow);
 }
 
-.provider-card-icon { font-size: 24px; margin-bottom: 8px; }
+.provider-card-icon { 
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+}
+.provider-card-icon svg {
+  width: 36px;
+  height: 36px;
+}
+.conn-kind-openai .conn-kind-icon svg, .provider-card:has(.provider-card-icon svg:active) /* specific colors */ { color: #10a37f; }
 .provider-card-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
 .provider-card-desc { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
 
