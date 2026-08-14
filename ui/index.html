@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meshery AI Adapter — BYOM PoC</title>
+  <meta name="description" content="Meshery BYOM: Bring Your Own Model — AI Provider Connections, Credentials, and NL→Design Generation">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">
+        <svg width="32" height="32" viewBox="0 0 186 186" fill="none">
+          <path d="M96 43V87l39-22z" fill="#00D3A9"/>
+          <path d="M96 96v44l39-22z" fill="#00D3A9"/>
+          <path d="M90 87V44L52 65z" fill="#00B39F"/>
+          <path d="M90 140V96L52 118z" fill="#00B39F"/>
+          <path d="M49 69v44l39-22z" fill="#00D3A9"/>
+          <path d="M138 113V70L99 91z" fill="#00B39F"/>
+          <path d="M138 60V17L99 39z" fill="#00B39F"/>
+          <path d="M49 17v43l39-21z" fill="#00D3A9"/>
+        </svg>
+        <div>
+          <h1 class="logo-text">Meshery <span class="logo-accent">AI</span></h1>
+          <p class="logo-sub">BYOM: Bring Your Own Model</p>
+        </div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="badge badge-mentorship">CNCF LFX Mentorship 2026</div>
+      <div class="badge badge-poc">Proof of Concept</div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main">
+    <!-- Left Panel: Connection Management -->
+    <section class="panel panel-connections" id="connectionsPanel">
+      <div class="panel-header">
+        <h2>🔌 AI Connections</h2>
+        <button class="btn btn-primary" onclick="showWizard()" id="addConnectionBtn">
+          <span class="btn-icon">+</span> New Connection
+        </button>
+      </div>
+
+      <!-- Connection List -->
+      <div class="connection-list" id="connectionList">
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">🤖</div>
+          <h3>No AI Connections Yet</h3>
+          <p>Add your first AI provider to start generating infrastructure designs from natural language.</p>
+          <button class="btn btn-secondary" onclick="showWizard()">Get Started</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Panel: Generation -->
+    <section class="panel panel-generation" id="generationPanel">
+      <div class="panel-header">
+        <h2>✨ Design Generation</h2>
+        <div class="panel-status" id="genStatus"></div>
+      </div>
+
+      <div class="gen-input-area">
+        <label class="input-label" for="promptInput">Describe your infrastructure intent</label>
+        <textarea class="prompt-input" id="promptInput" 
+          placeholder="e.g., Deploy a 3-replica nginx web server with a LoadBalancer service and a ConfigMap for custom configuration..."
+          rows="4"></textarea>
+        
+        <div class="gen-controls">
+          <select class="provider-select" id="providerSelect">
+            <option value="">Select AI Connection...</option>
+          </select>
+          <button class="btn btn-generate" onclick="generateDesign()" id="generateBtn" disabled>
+            <span class="btn-icon">⚡</span> Generate Design
+          </button>
+        </div>
+      </div>
+
+      <!-- Generation Result -->
+      <div class="gen-result" id="genResult" style="display:none">
+        <div class="result-header">
+          <h3 id="resultTitle">Generated Design</h3>
+          <div class="result-meta" id="resultMeta"></div>
+        </div>
+
+        <!-- Components Visual -->
+        <div class="components-grid" id="componentsGrid"></div>
+
+        <!-- Relationships -->
+        <div class="relationships-section" id="relationshipsSection" style="display:none">
+          <h4>Relationships</h4>
+          <div class="relationships-list" id="relationshipsList"></div>
+        </div>
+
+        <!-- Validation -->
+        <div class="validation-section" id="validationSection" style="display:none">
+          <h4>Validation Results</h4>
+          <div class="validation-list" id="validationList"></div>
+        </div>
+
+        <!-- Raw YAML -->
+        <details class="yaml-details">
+          <summary>View Design JSON</summary>
+          <pre class="yaml-output" id="yamlOutput"></pre>
+        </details>
+
+        <div class="result-actions">
+          <button class="btn btn-secondary" onclick="copyDesign()">📋 Copy Design</button>
+          <button class="btn btn-secondary" onclick="downloadDesign()">💾 Download YAML</button>
+          <button class="btn btn-kanvas" disabled title="Would open in Meshery Kanvas">🎨 Open in Kanvas</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Connection Wizard Modal -->
+  <div class="modal-overlay" id="wizardOverlay" style="display:none" onclick="closeWizard(event)">
+    <div class="modal wizard-modal" onclick="event.stopPropagation()">
+      <div class="wizard-header">
+        <h2>Create AI Provider Connection</h2>
+        <button class="modal-close" onclick="closeWizard()">&times;</button>
+      </div>
+      
+      <!-- Progress Steps -->
+      <div class="wizard-progress">
+        <div class="progress-step active" data-step="1">
+          <div class="step-circle">1</div>
+          <span>Provider</span>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step" data-step="2">
+          <div class="step-circle">2</div>
+          <span>Configure</span>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step" data-step="3">
+          <div class="step-circle">3</div>
+          <span>Credentials</span>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step" data-step="4">
+          <div class="step-circle">4</div>
+          <span>Verify</span>
+        </div>
+      </div>
+
+      <!-- Step 1: Select Provider -->
+      <div class="wizard-step" id="wizStep1">
+        <h3>Select AI Provider</h3>
+        <div class="provider-grid" id="providerGrid"></div>
+      </div>
+
+      <!-- Step 2: Configure -->
+      <div class="wizard-step" id="wizStep2" style="display:none">
+        <h3>Configure Connection</h3>
+        <div class="form-group">
+          <label for="connName">Connection Name</label>
+          <input type="text" id="connName" placeholder="My OpenAI Connection" class="form-input">
+        </div>
+        <div id="configFields"></div>
+      </div>
+
+      <!-- Step 3: Credentials -->
+      <div class="wizard-step" id="wizStep3" style="display:none">
+        <h3>Enter Credentials</h3>
+        <div class="security-notice">
+          <span class="security-icon">🔒</span>
+          <div>
+            <strong>Your credentials are secure</strong>
+            <p>Keys are encrypted at rest, never returned to clients, never written into prompt context or generated designs, and never appear in logs or events.</p>
+          </div>
+        </div>
+        <div id="credFields"></div>
+      </div>
+
+      <!-- Step 4: Verify -->
+      <div class="wizard-step" id="wizStep4" style="display:none">
+        <h3>Verify Connection</h3>
+        <div class="health-check-area" id="healthCheckArea">
+          <div class="health-checking">
+            <div class="spinner"></div>
+            <p>Running health check...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wizard Footer -->
+      <div class="wizard-footer">
+        <button class="btn btn-secondary" id="wizBackBtn" onclick="wizardBack()" style="display:none">← Back</button>
+        <div class="wizard-footer-right">
+          <button class="btn btn-primary" id="wizNextBtn" onclick="wizardNext()">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Credential List Modal -->
+  <div class="modal-overlay" id="credModal" style="display:none" onclick="closeCredModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="wizard-header">
+        <h2>🔑 Stored Credentials</h2>
+        <button class="modal-close" onclick="closeCredModal()">&times;</button>
+      </div>
+      <div class="cred-list" id="credList"></div>
+      <p class="cred-notice">Credential values are encrypted at rest and never returned by the API. Only existence flags are shown.</p>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-left">
+      <span>Meshery BYOM AI Adapter PoC</span>
+      <span class="sep">·</span>
+      <a href="https://github.com/meshery/meshery" target="_blank">GitHub</a>
+      <span class="sep">·</span>
+      <a href="https://docs.meshery.io" target="_blank">Docs</a>
+    </div>
+    <div class="footer-right">
+      <button class="btn btn-link" onclick="showCredentials()">🔑 Credentials</button>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

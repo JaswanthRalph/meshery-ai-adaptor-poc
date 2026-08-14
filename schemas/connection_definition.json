@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AI Provider Connection Definition",
+  "description": "Schema for registering AI provider connections in Meshery",
+  "type": "object",
+  "required": ["name", "kind"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Human-readable connection name"
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["openai", "anthropic", "ollama", "azure-openai"],
+      "description": "AI provider kind"
+    },
+    "config": {
+      "type": "object",
+      "description": "Provider-specific configuration",
+      "additionalProperties": { "type": "string" }
+    },
+    "credential_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to associated credential"
+    }
+  }
+}
