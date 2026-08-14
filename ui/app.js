@@ -476,7 +476,7 @@ function renderGenerationResult(result) {
     valSection.style.display = 'block';
     valList.innerHTML = result.validation_errors.map(err => `
       <div class="validation-item ${err.severity}">
-        ${err.severity === 'error' ? '❌' : '⚠️'}
+        ${err.severity === 'error' ? '❌' : err.severity === 'security' ? '🛡️' : '⚠️'}
         <span><strong>${escHtml(err.component)}</strong>: ${escHtml(err.message)}</span>
       </div>
     `).join('');
