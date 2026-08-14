@@ -112,12 +112,18 @@ func (p *Pipeline) Execute(
 	// Step 3: Call provider
 	notify("Calling AI provider...")
 	output, err := provider.Generate(ctx, input)
+	
+	var secrets []string
+	if cred != nil {
+		secrets = CollectSecrets(cred.Secret)
+	}
+
 	if err != nil {
 		response.Success = false
 		response.ValidationErrors = []models.ValidationError{{
 			Component: "generation",
 			Field:     "llm_call",
-			Message:   fmt.Sprintf("Provider call failed: %v", RedactSecrets(err.Error(), CollectSecrets(cred.Secret))),
+			Message:   fmt.Sprintf("Provider call failed: %v", RedactSecrets(err.Error(), secrets)),
 			Severity:  "error",
 		}}
 		response.LatencyMs = time.Since(start).Milliseconds()
@@ -128,7 +134,6 @@ func (p *Pipeline) Execute(
 	response.LatencyMs = time.Since(start).Milliseconds()
 
 	// Step 4: Redact any secrets from raw output
-	secrets := CollectSecrets(cred.Secret)
 	rawOutput := RedactSecrets(output.RawResponse, secrets)
 	response.RawOutput = rawOutput
 
