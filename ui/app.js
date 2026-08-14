@@ -517,9 +517,10 @@ async function openInKanvas() {
     const res = await fetch('http://localhost:9081/api/pattern', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(payload)
     });
-    if (!res.ok) throw new Error("Failed to export to Meshery Server");
+    if (!res.ok) throw new Error("Failed to export to Meshery Server (Status: " + res.status + ")");
     const data = await res.json();
     const patternId = data.id || data.pattern_id || data[0]?.id || "";
     window.open(`http://localhost:9081/extension/meshery-kanvas?design_id=${patternId}`, '_blank');
