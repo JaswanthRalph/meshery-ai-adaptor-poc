@@ -70,7 +70,9 @@ function renderConnections() {
   }
 
   empty.style.display = 'none';
-  list.innerHTML = connections.map(conn => {
+  list.innerHTML = '';
+  list.appendChild(empty);
+  list.insertAdjacentHTML('beforeend', connections.map(conn => {
     const kindClass = `conn-kind-${conn.kind}`;
     const statusClass = conn.status || 'registered';
     const providerInfo = providers.find(p => p.kind === conn.kind);
@@ -96,7 +98,7 @@ function renderConnections() {
         </div>
       </div>
     `;
-  }).join('');
+  }).join(''));
 }
 
 function updateProviderSelect() {
