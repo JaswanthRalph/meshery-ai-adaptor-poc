@@ -53,7 +53,7 @@ func NewVertexAIProvider(conn *models.Connection, cred *models.Credential) (*Ver
 		Model:       model,
 		AccessToken: accessToken,
 		BaseURL:     baseURL,
-		client:      &http.Client{Timeout: 60 * time.Second},
+		client:      &http.Client{Timeout: 120 * time.Second},
 	}, nil
 }
 

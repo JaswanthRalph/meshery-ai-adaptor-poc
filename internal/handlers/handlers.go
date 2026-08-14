@@ -52,9 +52,12 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 
 func (h *Handler) corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		origin := r.Header.Get("Origin")
+		if origin == "http://localhost:9081" || origin == "http://localhost:9082" {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+		}
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Operation-ID")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Operation-ID, X-User-ID")
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
 			return
@@ -135,12 +138,17 @@ func (h *Handler) handleConnections(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		userID := r.Header.Get("X-User-ID")
+		if userID == "" {
+			userID = "default-user"
+		}
+
 		conn := &models.Connection{
 			Name:         req.Name,
 			Kind:         req.Kind,
 			Config:       req.Config,
 			CredentialID: req.CredentialID,
-			UserID:       "default-user",
+			UserID:       userID,
 			Status:       models.StatusRegistered,
 		}
 
@@ -210,11 +218,16 @@ func (h *Handler) handleCredentials(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		userID := r.Header.Get("X-User-ID")
+		if userID == "" {
+			userID = "default-user"
+		}
+
 		cred := &models.Credential{
 			Name:   req.Name,
 			Kind:   req.Kind,
 			Secret: req.Secret,
-			UserID: "default-user",
+			UserID: userID,
 		}
 
 		created, err := h.store.CreateCredential(cred)

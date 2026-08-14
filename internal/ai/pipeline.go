@@ -261,7 +261,7 @@ func ValidateDesign(design *models.Design) []models.ValidationError {
 						Component: comp.Name,
 						Field:     "config",
 						Message:   fmt.Sprintf("Potential secret detected in config (pattern: %s). Secrets must not be embedded in Designs.", pattern),
-						Severity:  "warning",
+						Severity:  "error",
 					})
 				}
 			}
