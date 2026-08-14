@@ -138,14 +138,19 @@ async function healthCheck(connId) {
 
   try {
     const result = await apiFetch(`/api/ai/connections/${connId}/health`);
-    await loadConnections();
-
     const statusEmoji = result.status === 'connected' ? '✅' : result.status === 'auth_failed' ? '🔑' : '❌';
     actionsDiv.innerHTML = `<span style="font-size:12px">${statusEmoji} ${result.status} (${result.latency_ms}ms)</span>`;
-    setTimeout(() => { actionsDiv.innerHTML = origHTML; }, 4000);
+    
+    setTimeout(() => { 
+      actionsDiv.innerHTML = origHTML; 
+      loadConnections(); // Update the sidebar status only after showing the message
+    }, 4000);
   } catch (err) {
     actionsDiv.innerHTML = `<span style="font-size:12px;color:var(--accent-red)">❌ Failed</span>`;
-    setTimeout(() => { actionsDiv.innerHTML = origHTML; }, 3000);
+    setTimeout(() => { 
+      actionsDiv.innerHTML = origHTML; 
+      loadConnections();
+    }, 3000);
   }
 }
 
