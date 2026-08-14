@@ -75,6 +75,9 @@ func (p *OpenAIProvider) HealthCheck(ctx context.Context) (*models.HealthStatus,
 		return status, nil
 	}
 	req.Header.Set("Authorization", "Bearer "+p.cred.Secret["api_key"])
+	if org, ok := p.conn.Config["organization_id"]; ok && org != "" {
+		req.Header.Set("OpenAI-Organization", org)
+	}
 
 	resp, err := p.client.Do(req)
 	status.Latency = time.Since(start).Milliseconds()
