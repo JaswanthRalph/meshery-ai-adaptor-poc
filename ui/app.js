@@ -69,9 +69,9 @@ function renderConnections() {
     return;
   }
 
-  empty.style.display = 'none';
+  if (empty) empty.style.display = 'none';
   list.innerHTML = '';
-  list.appendChild(empty);
+  if (empty) list.appendChild(empty);
   list.insertAdjacentHTML('beforeend', connections.map(conn => {
     const kindClass = `conn-kind-${conn.kind}`;
     const statusClass = conn.status || 'registered';
