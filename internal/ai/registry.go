@@ -29,6 +29,9 @@ func NewRegistry() *Registry {
 	r.Register(models.ProviderAnthropic, NewAnthropicProvider)
 	r.Register(models.ProviderOllama, NewOllamaProvider)
 	r.Register(models.ProviderAzureOpenAI, NewAzureOpenAIProvider)
+	r.Register(models.ProviderVertexAI, func(conn *models.Connection, cred *models.Credential) (Provider, error) {
+		return NewVertexAIProvider(conn, cred)
+	})
 	return r
 }
 

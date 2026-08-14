@@ -90,7 +90,28 @@ func TestProviderSwap_RegistryCreatesCorrectProvider(t *testing.T) {
 		t.Errorf("Expected provider ID 'azure-openai', got '%s'", provider4.ID())
 	}
 
-	t.Logf("✅ Provider swap verified: OpenAI → Ollama → Anthropic → Azure OpenAI with no code changes")
+	// Test 5: Swap to Vertex AI
+	vertexConn := &models.Connection{
+		Kind: models.ProviderVertexAI,
+		Config: map[string]string{
+			"project_id": "my-project",
+			"location":   "us-central1",
+			"model":      "gemini",
+		},
+	}
+	vertexCred := &models.Credential{
+		Secret: map[string]string{"access_token": "ya29.token"},
+	}
+
+	provider5, err := registry.Create(vertexConn, vertexCred)
+	if err != nil {
+		t.Fatalf("Failed to create Vertex AI provider: %v", err)
+	}
+	if provider5.ID() != models.ProviderVertexAI {
+		t.Errorf("Expected provider ID 'vertex-ai', got '%s'", provider5.ID())
+	}
+
+	t.Logf("✅ Provider swap verified: OpenAI → Ollama → Anthropic → Azure OpenAI → Vertex AI with no code changes")
 }
 
 // TestProviderSwap_AllProvidersRegistered ensures all 4 minimum

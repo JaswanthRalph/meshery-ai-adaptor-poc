@@ -144,7 +144,7 @@ function closeWizard(event) {
 
 function renderProviderGrid() {
   const grid = document.getElementById('providerGrid');
-  const icons = { openai: '🧠', anthropic: '🔮', ollama: '🦙', 'azure-openai': '☁️' };
+  const icons = { openai: '🧠', anthropic: '🔮', ollama: '🦙', 'azure-openai': '☁️', 'vertex-ai': '☁️' };
 
   grid.innerHTML = providers.map(p => `
     <div class="provider-card ${selectedProvider?.kind === p.kind ? 'selected' : ''}" 

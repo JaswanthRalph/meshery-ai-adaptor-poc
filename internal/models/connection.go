@@ -28,6 +28,7 @@ const (
 	ProviderAnthropic   ProviderKind = "anthropic"
 	ProviderOllama      ProviderKind = "ollama"
 	ProviderAzureOpenAI ProviderKind = "azure-openai"
+	ProviderVertexAI    ProviderKind = "vertex-ai"
 )
 
 // Connection represents a registered AI provider connection.

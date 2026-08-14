@@ -102,6 +102,14 @@ func (h *Handler) handleProviders(w http.ResponseWriter, r *http.Request) {
 			"cred_fields":    []string{"api_key"},
 			"default_config": map[string]string{"api_version": "2024-02-15-preview"},
 		},
+		{
+			"kind": "vertex-ai", "name": "Google Vertex AI",
+			"description":    "Google Cloud Vertex AI (Gemini models)",
+			"requires_creds": true,
+			"config_fields":  []string{"project_id", "location", "model"},
+			"cred_fields":    []string{"access_token"},
+			"default_config": map[string]string{"location": "us-central1", "model": "gemini-1.5-pro"},
+		},
 	}
 	writeJSON(w, http.StatusOK, providers)
 }
