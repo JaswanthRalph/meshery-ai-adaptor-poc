@@ -28,8 +28,10 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -59,6 +61,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/ai/connections", h.corsMiddleware(h.handleConnections))
 	mux.HandleFunc("/api/ai/credentials", h.corsMiddleware(h.handleCredentials))
 	mux.HandleFunc("/api/ai/generate", h.corsMiddleware(h.handleGenerate))
+	mux.HandleFunc("/api/kanvas-export", h.corsMiddleware(h.handleKanvasExport))
 	// Pattern-based routes (Go 1.22+)
 	mux.HandleFunc("/api/ai/connections/", h.corsMiddleware(h.handleConnectionByID))
 	mux.HandleFunc("/api/ai/credentials/", h.corsMiddleware(h.handleCredentialByID))
@@ -439,6 +442,45 @@ func (h *Handler) handleGenerate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, response)
+}
+
+func (h *Handler) handleKanvasExport(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "Failed to read body: %v", err)
+		return
+	}
+
+	// Proxy to Meshery Server running on the host
+	targetURL := "http://host.docker.internal:9081/api/pattern"
+	proxyReq, err := http.NewRequest("POST", targetURL, bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Failed to create proxy request: %v", err)
+		return
+	}
+
+	proxyReq.Header.Set("Content-Type", "application/json")
+	
+	// Forward all cookies to ensure authentication succeeds
+	for _, cookie := range r.Cookies() {
+		proxyReq.AddCookie(cookie)
+	}
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(proxyReq)
+	if err != nil {
+		writeError(w, http.StatusBadGateway, "Failed to reach Meshery Server at 9081: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	w.WriteHeader(resp.StatusCode)
+	io.Copy(w, resp.Body)
 }
 
 // --- Helpers ---

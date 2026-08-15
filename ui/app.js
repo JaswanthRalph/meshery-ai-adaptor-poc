@@ -514,7 +514,7 @@ async function openInKanvas() {
       pattern_data: JSON.stringify(lastDesign.design),
       name: lastDesign.design.name || "AI-Generated Design"
     };
-    const res = await fetch('http://localhost:9081/api/pattern', {
+    const res = await fetch('/api/kanvas-export', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
