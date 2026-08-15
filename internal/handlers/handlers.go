@@ -480,7 +480,9 @@ func (h *Handler) handleKanvasExport(w http.ResponseWriter, r *http.Request) {
 	defer resp.Body.Close()
 
 	w.WriteHeader(resp.StatusCode)
-	io.Copy(w, resp.Body)
+	if _, err := io.Copy(w, resp.Body); err != nil {
+		log.Printf("[ERROR] Failed to write proxy response body: %v", err)
+	}
 }
 
 // --- Helpers ---
